@@ -1,0 +1,16 @@
+#Script-part of workflow to update the database from gisaid on a regular basis
+#This script is intended to be used in combiation whith a job scheduling using cron
+
+rule create_update_gisaiddb:
+    input:
+        #It is required to have in the diretory a file with the login details
+        "gisaid/credentials.txt"
+    output:
+        directory("gisaid/fastas")
+    conda:
+        "env/gisaid_scrap.yml"
+    threads: 1
+    params:
+        fastas="gisaid/fastas"
+    shell:
+        "python gisaid/gisaid-scrapper-master/scrap.py --filename {input} --destination {params.fastas}"
