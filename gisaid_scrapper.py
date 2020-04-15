@@ -14,6 +14,8 @@ import glob
 import os
 import sys
 from urllib3.exceptions import MaxRetryError
+#This was added to have a record of the date when a sequence was downloaded
+from datetime import datetime
 
 METADATA_COLUMNS = [
     "Accession",
@@ -33,7 +35,8 @@ METADATA_COLUMNS = [
     "Assembly method",
     "Coverage",
     "Comment",
-    "Length"
+    "Length",
+    "Download date"
 ]
 
 
@@ -164,10 +167,11 @@ class GisaidCoVScrapper:
         for i in tqdm.trange(len(rows)):
             self._download_row(parent_form, i)
 
+#Replaced "name = row.find_elements_by_tag_name("td")[2].text" to "name = row.find_elements_by_tag_name("td")[3].text  
     def _download_row(self, parent_form, row_id):
         row = parent_form.find_elements_by_tag_name("tr")[row_id]
         col = row.find_elements_by_tag_name("td")[1]
-        name = row.find_elements_by_tag_name("td")[2].text
+        name = row.find_elements_by_tag_name("td")[3].text
         if name in self.already_downloaded:
             return
 
@@ -205,6 +209,10 @@ class GisaidCoVScrapper:
             except IndexError:
                 res += "\t"
         res += str(len(fasta))
+        res += "\t"
+        #line added to record date of download in every sequence
+        res += datetime.today().strftime('%Y-%m-%d')
+        res += "\t"
         self.metadata_handle.write(res + "\n")
 
         # Save FASTA
