@@ -1,5 +1,14 @@
-#Script-part of workflow to update the database from gisaid on a regular basis
+
+#Script-part of workflow to update the database from gisaid and 2019nCoVR on a regular basis
 #This script is intended to be used in combiation whith a job scheduling using cron
+#To run the gisaid scrapper inlcude credentials file in a folder named gisaid.
+rule all:
+    input:
+        "2019nCoVR/fastas/fasta",
+        "2019nCoVR/fastas/meta",
+        "2019nCoVR/fastas/stat_out.txt",
+        "2019nCoVR/fastas/metadata.txt",
+        directory("gisaid/fastas")
 
 rule create_update_gisaiddb:
     input:
@@ -14,3 +23,25 @@ rule create_update_gisaiddb:
         fastas="gisaid/fastas"
     shell:
         "python gisaid/gisaid-scrapper-master/scrap.py --filename {input} --destination {params.fastas}"
+
+rule create_update_2019nCoVR:
+    output:
+        "2019nCoVR/fastas/fasta",
+        "2019nCoVR/fastas/meta",
+        "2019nCoVR/fastas/stat_out.txt"
+    threads: 1
+    shell:
+        "bash_scripts/update_2019nCoVR.sh"
+
+
+rule reformat_metadata_2019nCoVR:
+    #Convert metadata 2019nCoVR form xml to tab separated
+    input:
+        "2019nCoVR/fastas/meta"
+    output:
+        metadata="2019nCoVR/fastas/metadata.txt"
+    threads: 1
+    conda:
+        "env/python3.7-pandas.yml"
+    script:
+        "python_scripts/reformat_metadata.py"
